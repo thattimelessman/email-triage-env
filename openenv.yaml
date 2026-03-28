@@ -1,0 +1,26 @@
+name: email-triage-env
+version: "1.0.0"
+description: "An environment where an AI agent triages emails by classifying them and assigning them to departments."
+author: "agrajsingh04"
+tags:
+  - openenv
+  - email
+  - triage
+  - real-world
+tasks:
+  - id: easy
+    description: "Classify a single email as urgent, normal, or spam."
+    difficulty: easy
+  - id: medium
+    description: "Classify 5 emails and assign each to the correct department."
+    difficulty: medium
+  - id: hard
+    description: "Classify 10 emails, assign departments, and identify phishing emails."
+    difficulty: hard
+action_space:
+  classifications: "dict mapping email_id to one of: urgent, normal, spam"
+  departments: "dict mapping email_id to department name"
+observation_space:
+  task_id: "string"
+  emails: "list of email objects with id, subject, body, sender"
+  instructions: "string describing the task"
