@@ -1,18 +1,21 @@
 import os
-from openai import OpenAI
-import requests
 import json
+import re
+import requests
+from openai import OpenAI
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.3-70B-Instruct")
+HF_TOKEN = os.getenv("HF_TOKEN")
 ENV_URL = os.getenv("ENV_URL", "http://localhost:7860")
 
-client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 TASKS = ["easy", "medium", "hard"]
 
 def run_task(task_id: str) -> float:
+    print(f"[START] task={task_id}", flush=True)
+
     obs = requests.post(f"{ENV_URL}/reset", params={"task_id": task_id}).json()
     emails = obs["emails"]
     instructions = obs["instructions"]
@@ -46,7 +49,6 @@ Respond with ONLY the JSON object, no explanation."""
     try:
         action = json.loads(raw)
     except Exception:
-        import re
         match = re.search(r'\{.*\}', raw, re.DOTALL)
         action = json.loads(match.group()) if match else {
             "classifications": {},
@@ -55,15 +57,16 @@ Respond with ONLY the JSON object, no explanation."""
 
     result = requests.post(f"{ENV_URL}/step", json=action).json()
     score = result["reward"]
-    feedback = result["info"]["feedback"]
-    print(f"Task: {task_id} | Score: {score} | {feedback}")
+
+    print(f"[STEP] step=1 reward={score}", flush=True)
+    print(f"[END] task={task_id} score={score} steps=1", flush=True)
+
     return score
 
 if __name__ == "__main__":
-    print("Running Email Triage Baseline Inference\n")
     total = 0
     for task in TASKS:
         score = run_task(task)
         total += score
     avg = round(total / len(TASKS), 4)
-    print(f"\nAverage Score: {avg}")
+    print(f"[END] average_score={avg}", flush=True)
