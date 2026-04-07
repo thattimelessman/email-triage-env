@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install fastapi uvicorn pydantic openai
+RUN pip install fastapi uvicorn pydantic openai requests
 
 EXPOSE 7860
 
