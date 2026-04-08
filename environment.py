@@ -92,7 +92,8 @@ class EmailTriageEnv:
             phishing_bonus = 0.1 * (len(detected) / len(phishing_ids))
 
         raw_score = (label_score / total) * 0.5 + (dept_score / total) * 0.4 + phishing_bonus
-        final_score = round(min(raw_score, 1.0), 4)
+        final_score = round(min(raw_score, 0.99), 4) 
+        final_score = max(final_score, 0.01)
 
         feedback = (
             f"Label accuracy: {label_score}/{total} | "
