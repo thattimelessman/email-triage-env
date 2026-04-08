@@ -41,7 +41,7 @@ class EmailTriageEnv:
         if self.done:
             return {
                 "observation": self.current_obs.model_dump(),
-                "reward": 0.0,
+                "reward": 0.01,
                 "done": True,
                 "info": {"error": "Episode already done. Call reset()."}
             }
