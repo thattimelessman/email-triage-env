@@ -3,7 +3,7 @@ subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "requests"]
 import os, json, re, requests
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME   = os.getenv("MODEL_NAME",   "meta-llama/Llama-3.3-70B-Instruct")
+MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN     = os.getenv("HF_TOKEN")
 ENV_URL      = os.getenv("ENV_URL",      "http://localhost:7860")
 TASKS        = ["easy", "medium", "hard"]
@@ -77,6 +77,10 @@ def run_task(task_id):
             action = parse_action(raw)
             atype  = action.get("action_type", "run_code")
             history.append(atype)
+            # Force submit if running out of steps and no progress
+            if step_num >= MAX_STEPS - 2 and "submit" not in history:
+                action = {"action_type": "submit"}
+                atype = "submit(forced)"
             result = requests.post(ENV_URL + "/step", json=action, timeout=30).json()
             reward = result.get("reward", 0.0)
             done   = result.get("done",   False)
