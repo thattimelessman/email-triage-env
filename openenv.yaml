@@ -1,26 +1,47 @@
-name: email-triage-env
+name: python-repl-debug-env
 version: "1.0.0"
-description: "An environment where an AI agent triages emails by classifying them and assigning them to departments."
-author: "agrajsingh04"
-tags:
-  - openenv
-  - email
-  - triage
-  - real-world
+description: >
+  A multi-step RL environment where an agent debugs broken Python code
+  by iteratively running code, reading errors, and applying fixes until
+  all test cases pass. Features partial credit grading and step-efficiency bonuses.
+
+author: agraj
+license: MIT
+
+environment:
+  type: http
+  framework: fastapi
+  entry: main:app
+  port: 7860
+
 tasks:
   - id: easy
-    description: "Classify a single email as urgent, normal, or spam."
-    difficulty: easy
+    description: Fix two simple bugs in sum_evens and is_palindrome functions
+    max_steps: 10
   - id: medium
-    description: "Classify 5 emails and assign each to the correct department."
-    difficulty: medium
+    description: Fix a student grade processor with three interacting bugs
+    max_steps: 10
   - id: hard
-    description: "Classify 10 emails, assign departments, and identify phishing emails."
-    difficulty: hard
-action_space:
-  classifications: "dict mapping email_id to one of: urgent, normal, spam"
-  departments: "dict mapping email_id to department name"
-observation_space:
-  task_id: "string"
-  emails: "list of email objects with id, subject, body, sender"
-  instructions: "string describing the task"
+    description: Fix a priority task scheduler with five interacting bugs
+    max_steps: 10
+
+actions:
+  - name: run_code
+    description: Execute current code and observe stdout/stderr
+  - name: edit_code
+    description: Replace current code with a new version
+  - name: submit
+    description: Grade current code against all test cases
+
+reward:
+  range: [0.0, 1.0]
+  partial_credit: true
+  description: >
+    Fraction of tests passed + 0.1 bonus for all-pass + up to 0.1 step-efficiency bonus.
+
+inference:
+  script: inference.py
+  model_env: MODEL_NAME
+  token_env: HF_TOKEN
+  base_url_env: API_BASE_URL
+  env_url_env: ENV_URL
