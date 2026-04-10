@@ -180,7 +180,8 @@ q = TaskQueue()
 q.add_task('low', 10)
 q.add_task('high', 1)
 q.add_task('mid', 5)
-assert q.next_task() == 'high', f'Expected high, got {q.next_task() if False else "check failed"}'
+result = q.next_task()
+assert result == 'high', f'Expected high, got {result}'
 """
             },
             {

@@ -7,7 +7,7 @@ MODEL_NAME   = os.getenv("MODEL_NAME",   "meta-llama/Llama-3.3-70B-Instruct")
 HF_TOKEN     = os.getenv("HF_TOKEN")
 ENV_URL      = os.getenv("ENV_URL",      "http://localhost:7860")
 TASKS        = ["easy", "medium", "hard"]
-MAX_STEPS    = 8
+MAX_STEPS    = 12
 
 SYSTEM = (
     "You are an expert Python debugger. "
