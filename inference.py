@@ -81,6 +81,7 @@ def run_task(task_id):
             if step_num >= MAX_STEPS - 2 and "submit" not in history:
                 action = {"action_type": "submit"}
                 atype = "submit(forced)"
+            action["episode_id"] = obs.get("episode_id")
             result = requests.post(ENV_URL + "/step", json=action, timeout=30).json()
             reward = result.get("reward", 0.0)
             done   = result.get("done",   False)
