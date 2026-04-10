@@ -19,15 +19,29 @@ SYSTEM = (
     "Strategy: run_code to see errors, edit_code to fix, submit when done."
 )
 
+FALLBACK_MODELS = [
+    "Qwen/Qwen2.5-72B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3",
+    "HuggingFaceH4/zephyr-7b-beta",
+]
+
 def call_llm(messages):
-    r = requests.post(
-        API_BASE_URL + "/chat/completions",
-        headers={"Authorization": "Bearer " + HF_TOKEN, "Content-Type": "application/json"},
-        json={"model": MODEL_NAME, "messages": messages, "temperature": 0.0, "max_tokens": 1024},
-        timeout=60,
-    )
-    r.raise_for_status()
-    return (r.json()["choices"][0]["message"].get("content") or "").strip()
+    for model in FALLBACK_MODELS:
+        try:
+            r = requests.post(
+                API_BASE_URL + "/chat/completions",
+                headers={"Authorization": "Bearer " + HF_TOKEN, "Content-Type": "application/json"},
+                json={"model": model, "messages": messages, "temperature": 0.0, "max_tokens": 1024},
+                timeout=60,
+            )
+            r.raise_for_status()
+            return (r.json()["choices"][0]["message"].get("content") or "").strip()
+        except Exception as e:
+            if "402" in str(e) or "429" in str(e):
+                continue
+            raise
+    raise Exception("All models rate limited")
+
 
 def build_msg(obs, history):
     parts = ["TASK: " + obs["task_description"], "CODE:\n" + obs["current_code"]]
