@@ -223,4 +223,117 @@ assert q.next_task() is None, 'Expected None on empty queue'
             },
         ],
     },
+
+    # ──────────────────────────────────────────────────────────────────
+    # EXPERT: LRU Cache with 4 interacting bugs
+    # ──────────────────────────────────────────────────────────────────
+    "expert": {
+        "description": (
+            "Fix the LRUCache (Least Recently Used cache) implementation. "
+            "`LRUCache(capacity)` creates a cache with a max number of entries. "
+            "`get(key)` returns the value for key, or -1 if not present. Accessing a key marks it as most recently used. "
+            "`put(key, value)` inserts or updates a key. If at capacity, evicts the least recently used key first. "
+            "`size()` returns the current number of entries in the cache. "
+            "There are 4 bugs to find and fix."
+        ),
+        "broken_code": """\
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = {}
+        self.order = []  # tracks usage: index 0 = least recent, last = most recent
+
+    def get(self, key):
+        if key not in self.cache:
+            return -1
+        # BUG 1: removes key but forgets to re-append it (so order is wrong after get)
+        self.order.remove(key)
+        # missing: self.order.append(key)
+        return self.cache[key]
+
+    def put(self, key, value):
+        if key in self.cache:
+            self.order.remove(key)
+        elif len(self.cache) >= self.capacity:
+            lru = self.order[0]
+            del self.cache[lru]
+            self.order.pop(0)
+        self.cache[key] = value
+        # BUG 2: missing self.order.append(key) — order never updated on put
+
+    def size(self):
+        # BUG 3: off by one
+        return len(self.cache) + 1
+""",
+        "tests": [
+            {
+                "name": "basic get returns correct value",
+                "assert_code": """\
+c = LRUCache(2)
+c.put(1, 10)
+c.put(2, 20)
+assert c.get(1) == 10, f'Expected 10, got {c.get(1)}'
+assert c.get(2) == 20, f'Expected 20, got {c.get(2)}'
+"""
+            },
+            {
+                "name": "get on missing key returns -1",
+                "assert_code": """\
+c = LRUCache(2)
+c.put(1, 1)
+assert c.get(99) == -1, f'Expected -1, got {c.get(99)}'
+"""
+            },
+            {
+                "name": "size() is correct",
+                "assert_code": """\
+c = LRUCache(3)
+assert c.size() == 0, f'Expected 0, got {c.size()}'
+c.put(1, 1)
+assert c.size() == 1, f'Expected 1, got {c.size()}'
+c.put(2, 2)
+assert c.size() == 2, f'Expected 2, got {c.size()}'
+"""
+            },
+            {
+                "name": "LRU eviction evicts least recently used",
+                "assert_code": """\
+c = LRUCache(2)
+c.put(1, 1)
+c.put(2, 2)
+c.get(1)       # access 1, so 2 is now LRU
+c.put(3, 3)    # should evict 2
+assert c.get(2) == -1, f'Key 2 should have been evicted, got {c.get(2)}'
+assert c.get(1) == 1,  f'Key 1 should still exist, got {c.get(1)}'
+assert c.get(3) == 3,  f'Key 3 should exist, got {c.get(3)}'
+"""
+            },
+            {
+                "name": "update existing key does not grow cache",
+                "assert_code": """\
+c = LRUCache(2)
+c.put(1, 1)
+c.put(1, 100)
+assert c.size() == 1,   f'Expected size 1, got {c.size()}'
+assert c.get(1) == 100, f'Expected 100, got {c.get(1)}'
+"""
+            },
+            {
+                "name": "full eviction sequence",
+                "assert_code": """\
+c = LRUCache(2)
+c.put(1, 1)
+c.put(2, 2)
+c.put(3, 3)    # evicts 1 (LRU)
+assert c.get(1) == -1, f'1 should be evicted'
+assert c.get(2) == 2
+assert c.get(3) == 3
+c.put(4, 4)    # evicts 2 (LRU)
+assert c.get(2) == -1, f'2 should be evicted'
+assert c.get(3) == 3
+assert c.get(4) == 4
+"""
+            },
+        ],
+    },
 }
