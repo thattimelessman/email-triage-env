@@ -1,3 +1,12 @@
+---
+title: Python REPL Debugging Environment
+emoji: 🐍
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # Python REPL Debugging Environment
 
 A multi-step RL environment where an agent debugs broken Python code by iteratively running code, reading errors, and applying fixes until all test cases pass.
