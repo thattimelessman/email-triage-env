@@ -3,7 +3,8 @@ version: "1.0.0"
 description: >
   A multi-step RL environment where an agent debugs broken Python code
   by iteratively running code, reading errors, and applying fixes until
-  all test cases pass. Features partial credit grading and step-efficiency bonuses.
+  all test cases pass. Features 4 difficulty levels, partial credit
+  grading, and per-session isolation for concurrent agents.
 
 author: agraj
 license: MIT
@@ -24,6 +25,9 @@ tasks:
   - id: hard
     description: Fix a priority task scheduler with five interacting bugs
     max_steps: 10
+  - id: expert
+    description: Fix an LRU Cache implementation with four interacting bugs
+    max_steps: 12
 
 actions:
   - name: run_code
@@ -34,10 +38,12 @@ actions:
     description: Grade current code against all test cases
 
 reward:
-  range: [0.0, 1.0]
+  range: [0.02, 0.95]
   partial_credit: true
   description: >
-    Fraction of tests passed + 0.1 bonus for all-pass + up to 0.1 step-efficiency bonus.
+    Scores are strictly between 0 and 1. Remapped from fraction of
+    tests passed: 0 tests -> 0.02, all tests -> 0.95, with linear
+    interpolation for partial credit.
 
 inference:
   script: inference.py
